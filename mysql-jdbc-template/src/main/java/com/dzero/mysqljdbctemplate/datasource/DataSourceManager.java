@@ -11,6 +11,7 @@ import javax.sql.DataSource;
 
 
 /**
+ * 数据源管理
  * @author DZero
  * @date 2020/3/23 17:11
  */
@@ -20,11 +21,16 @@ public class DataSourceManager {
     /**
      * 获取数据源
      * @param dsConfig 数据源配置
-     * @return
+     * @return 数据源
      */
-    public DataSource getDataSource(DataSourceConfig dsConfig){
+    public static DataSource getDataSource(DataSourceConfig dsConfig){
         LOGGER.info("开始");
         HikariConfig config=new HikariConfig();
+       String driveClassName= dsConfig.getDriverClassName();
+        if(driveClassName==null||driveClassName.isEmpty()){
+            driveClassName= "com.mysql.cj.jdbc.Driver";
+        }
+        config.setDriverClassName(driveClassName);
         config.setJdbcUrl(dsConfig.getUrl());
         config.setUsername(dsConfig.getUserName());
         config.setPassword(dsConfig.getPassword());
@@ -32,7 +38,13 @@ public class DataSourceManager {
         return dataSource;
     }
 
-    public JdbcTemplate getTemplateData(DataSource ds){
+    public static JdbcTemplate getTemplate(DataSource ds){
+        JdbcTemplate template=new JdbcTemplate(ds);
+        return template;
+    }
+
+    public static JdbcTemplate getTemplate(DataSourceConfig dsConfig){
+        DataSource ds =getDataSource(dsConfig);
         JdbcTemplate template=new JdbcTemplate(ds);
         return template;
     }
