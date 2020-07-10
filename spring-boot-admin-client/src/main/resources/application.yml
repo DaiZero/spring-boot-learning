@@ -1,0 +1,15 @@
+server:
+  port: 9091
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # 暴漏的接口 - 所有接口
+        include: "*"
+spring:
+  boot:
+    admin:
+      client:
+        url: http://localhost:9090

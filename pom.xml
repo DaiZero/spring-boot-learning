@@ -18,6 +18,8 @@
         <module>mysql-jdbc</module>
         <module>mysql-jdbc-template</module>
         <module>springdoc-openapi3</module>
+        <module>spring-boot-admin-server</module>
+        <module>spring-boot-admin-client</module>
     </modules>
 
 </project>
