@@ -1,13 +1,13 @@
-package com.dzero.springbootrest2webserviceservice;
+package com.dzero.cxf.webservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class SpringBootRest2WebserviceServiceApplication {
+public class CxfWebserviceServerApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(SpringBootRest2WebserviceServiceApplication.class, args);
+        SpringApplication.run(CxfWebserviceServerApplication.class, args);
     }
 
 }

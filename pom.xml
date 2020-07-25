@@ -14,6 +14,8 @@
     <name>spring-boot-learning</name>
 
     <modules>
+        <module>common-utils</module>
+        <module>cxf-webservice-server</module>
         <module>mongo-template</module>
         <module>mysql-jdbc</module>
         <module>mysql-jdbc-template</module>

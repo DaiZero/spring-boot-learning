@@ -1,10 +1,10 @@
-package com.dzero.springbootrest2webserviceservice;
+package com.dzero.cxf.webservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class SpringBootRest2WebserviceServiceApplicationTests {
+class CxfWebserviceServerApplicationTests {
 
     @Test
     void contextLoads() {
