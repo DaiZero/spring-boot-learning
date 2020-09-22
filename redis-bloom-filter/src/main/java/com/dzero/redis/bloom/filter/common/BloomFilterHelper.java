@@ -4,18 +4,21 @@ import com.google.common.base.Preconditions;
 import com.google.common.hash.Funnel;
 import com.google.common.hash.Hashing;
 
+import java.io.Serializable;
+
 
 /**
  * @author dzd
  * @date 2020/9/21 16:02
  */
-public class BloomFilterHelper<T> {
+public class BloomFilterHelper<T> implements Serializable {
 
-    private int numHashFunctions;
 
-    private int bitSize;
+    private final int numHashFunctions;
 
-    private Funnel<T> funnel;
+    private final int bitSize;
+
+    private final Funnel<T> funnel;
 
     public BloomFilterHelper(Funnel<T> funnel, int expectedInsertions, double fpp) {
         Preconditions.checkArgument(funnel != null, "funnel不能为空");
@@ -24,9 +27,8 @@ public class BloomFilterHelper<T> {
         numHashFunctions = optimalNumOfHashFunctions(expectedInsertions, bitSize);
     }
 
-   public int[] murmurHashOffset(T value) {
+    public int[] murmurHashOffset(T value) {
         int[] offset = new int[numHashFunctions];
-
         long hash64 = Hashing.murmur3_128().hashObject(value, funnel).asLong();
         int hash1 = (int) hash64;
         int hash2 = (int) (hash64 >>> 32);
