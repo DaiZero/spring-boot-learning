@@ -2,8 +2,6 @@ package com.dzero.redis.bloom.filter.controller;
 
 import com.dzero.redis.bloom.filter.common.BloomFilterHelper;
 import com.dzero.redis.bloom.filter.util.RedisUtil;
-import com.google.common.base.Charsets;
-import com.google.common.hash.Funnel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,12 +27,14 @@ public class PhoneNoController {
 
     @GetMapping(value = "/addNoToBloom", produces = "application/json")
     public void addNoToBloom(String phoneNo) {
+        log.info("新增手机号："+phoneNo);
         redisUtil.addByBloomFilter(bloomFilter, PHONE_NO_BLOOM_KEY, phoneNo);
     }
 
     @GetMapping(value = "/findNoInBloom", produces = "application/json")
     public Boolean findNoInBloom(String phoneNo) {
         boolean isExist = redisUtil.includeByBloomFilter(bloomFilter, PHONE_NO_BLOOM_KEY, phoneNo);
+        log.info("手机号："+phoneNo+(isExist?" 存在":" 不存在"));
         return isExist;
     }
 }
