@@ -23,18 +23,38 @@ public class PhoneNoController {
     private RedisUtil redisUtil;
 
     @Autowired
-    private  BloomFilterHelper bloomFilter;
+    private BloomFilterHelper bloomFilter;
+
+    @GetMapping(value = "/batch/add", produces = "application/json")
+    public void batchAddToBloom() {
+        for (int i = 0; i < 1000000; i++) {
+            redisUtil.addByBloomFilter(bloomFilter, PHONE_NO_BLOOM_KEY, String.valueOf(i));
+        }
+    }
+
+    @GetMapping(value = "/batch/find", produces = "application/json")
+    public void batchAddToBloom2() {
+        int count = 0;
+        for (int i = 1000000; i < 2000000; i++) {
+            boolean isExist = redisUtil.includeByBloomFilter(bloomFilter, PHONE_NO_BLOOM_KEY, String.valueOf(i));
+            if (isExist) {
+                count++;
+                log.info("误判：" + i);
+            }
+        }
+        log.info("总共的误判数:" + count);
+    }
 
     @GetMapping(value = "/addNoToBloom", produces = "application/json")
     public void addNoToBloom(String phoneNo) {
-        log.info("新增手机号："+phoneNo);
+        log.info("新增手机号：" + phoneNo);
         redisUtil.addByBloomFilter(bloomFilter, PHONE_NO_BLOOM_KEY, phoneNo);
     }
 
     @GetMapping(value = "/findNoInBloom", produces = "application/json")
     public Boolean findNoInBloom(String phoneNo) {
         boolean isExist = redisUtil.includeByBloomFilter(bloomFilter, PHONE_NO_BLOOM_KEY, phoneNo);
-        log.info("手机号："+phoneNo+(isExist?" 存在":" 不存在"));
+        log.info("手机号：" + phoneNo + (isExist ? " 存在" : " 不存在"));
         return isExist;
     }
 }
