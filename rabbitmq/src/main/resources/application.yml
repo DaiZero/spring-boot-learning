@@ -1,0 +1,7 @@
+spring:
+  rabbitmq:
+    host: 192.168.1.36
+    port: 30094
+    virtual-host: /
+    username: OjYnE7-QBcd4Dp2smCctuojtYMy_vNsr
+    password: p3aJC6KQDaK7EZHR0p6w9ftrtP1OP6MK

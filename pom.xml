@@ -22,6 +22,7 @@
         <module>springdoc-openapi3</module>
         <module>spring-boot-admin-server</module>
         <module>spring-boot-admin-client</module>
+        <module>rabbitmq</module>
     </modules>
 
 </project>
