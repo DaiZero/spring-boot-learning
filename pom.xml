@@ -16,7 +16,7 @@
 
     <modules>
         <module>common-utils</module>
-        <module>cxf-webservice-server</module>
+        <module>cxf-webservice</module>
         <module>file-demo</module>
         <module>mongo-template</module>
         <module>mysql-jdbc</module>
