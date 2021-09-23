@@ -9,5 +9,4 @@ public class SpringdocOpenapi3Application {
     public static void main(String[] args) {
         SpringApplication.run(SpringdocOpenapi3Application.class, args);
     }
-
 }
