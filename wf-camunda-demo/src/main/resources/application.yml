@@ -27,6 +27,11 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
     password: pw123456
+logging:
+  level:
+    com.dzero.wf.camunda.demo: info
+    org.camunda.bpm.engine: info
+    o.a.ibatis: info
 #服务端口
 server:
   port: 8081

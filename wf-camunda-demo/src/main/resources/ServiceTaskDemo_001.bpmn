@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1ydvm05" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.11.1" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.15.0">
+  <bpmn:process id="ServiceTaskDemo_001" name="Service Task Demo 001" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1" name="Start">
+      <bpmn:outgoing>Flow_16feo30</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_16feo30" sourceRef="StartEvent_1" targetRef="Activity_1uv0uoq">
+      <bpmn:extensionElements>
+        <camunda:executionListener class="com.dzero.wf.camunda.demo.listener.LogTransition" event="take">
+          <camunda:field name="myVariable">
+            <camunda:expression>123456</camunda:expression>
+          </camunda:field>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
+    </bpmn:sequenceFlow>
+    <bpmn:endEvent id="Event_006h2yo" name="End">
+      <bpmn:incoming>Flow_162uspj</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="Activity_1uv0uoq" name="Call External Service" camunda:delegateExpression="#{CallExternalService}">
+      <bpmn:incoming>Flow_16feo30</bpmn:incoming>
+      <bpmn:outgoing>Flow_0r64chw</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Activity_04tfwwz" name="LogToConsole" camunda:class="com.dzero.wf.camunda.demo.serviceTask.LogToConsole">
+      <bpmn:incoming>Flow_0r64chw</bpmn:incoming>
+      <bpmn:outgoing>Flow_162uspj</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_0r64chw" sourceRef="Activity_1uv0uoq" targetRef="Activity_04tfwwz" />
+    <bpmn:sequenceFlow id="Flow_162uspj" sourceRef="Activity_04tfwwz" targetRef="Event_006h2yo" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="ServiceTaskDemo_001">
+      <bpmndi:BPMNEdge id="Flow_16feo30_di" bpmnElement="Flow_16feo30">
+        <di:waypoint x="215" y="117" />
+        <di:waypoint x="310" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0r64chw_di" bpmnElement="Flow_0r64chw">
+        <di:waypoint x="410" y="117" />
+        <di:waypoint x="480" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_162uspj_di" bpmnElement="Flow_162uspj">
+        <di:waypoint x="580" y="117" />
+        <di:waypoint x="692" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="179" y="99" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="185" y="142" width="25" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0x3mqo4_di" bpmnElement="Activity_1uv0uoq">
+        <dc:Bounds x="310" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0lekiuu_di" bpmnElement="Activity_04tfwwz">
+        <dc:Bounds x="480" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_006h2yo_di" bpmnElement="Event_006h2yo">
+        <dc:Bounds x="692" y="99" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="700" y="142" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -11,5 +11,4 @@ public class WfCamundaDemoApplication {
     public static void main(String[] args) {
         SpringApplication.run(WfCamundaDemoApplication.class, args);
     }
-
 }
