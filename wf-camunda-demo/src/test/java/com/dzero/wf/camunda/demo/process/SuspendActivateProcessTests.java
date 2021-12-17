@@ -41,6 +41,7 @@ public class SuspendActivateProcessTests {
         ProcessDefinition processDefinition = repositoryService
                 .createProcessDefinitionQuery()
                 .processDefinitionKey("loanApproval")
+                .latestVersion()
                 .singleResult();
         // 2。获取流程定义ID 和 是否暂停的状态
         String pdId = processDefinition.getId();
@@ -80,6 +81,7 @@ public class SuspendActivateProcessTests {
         ProcessDefinition processDefinition = repositoryService
                 .createProcessDefinitionQuery()
                 .processDefinitionKey("loanApproval")
+                .latestVersion()
                 .singleResult();
         // 2。获取流程定义ID 和 是否暂停的状态
         String pdId = processDefinition.getId();
@@ -160,6 +162,7 @@ public class SuspendActivateProcessTests {
     }
 
     ProcessInstance getProcessInstanceByKey(String key) {
+        activateProcessDefinitionByKey();
         ProcessInstance processInstance = runtimeService.createProcessInstanceQuery()
                 .processDefinitionKey(key)
                 .singleResult();
