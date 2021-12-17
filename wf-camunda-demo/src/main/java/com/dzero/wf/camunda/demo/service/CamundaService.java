@@ -1,10 +1,7 @@
 package com.dzero.wf.camunda.demo.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.camunda.bpm.engine.FormService;
-import org.camunda.bpm.engine.RuntimeService;
-import org.camunda.bpm.engine.TaskService;
-import org.camunda.bpm.engine.RepositoryService;
+import org.camunda.bpm.engine.*;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,6 +18,9 @@ import java.util.List;
 public class CamundaService {
     @Autowired
     private FormService formService;
+
+    @Autowired
+    private DecisionService dmnService;
 
     @Autowired
     private RuntimeService runtimeService;
