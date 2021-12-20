@@ -48,23 +48,32 @@ public class TaskAssigneeTests {
 
     @Test
     void task_assignee_el_user(){
+        // 1. 参数值设置
         Map<String,Object> mapVal=new HashMap<>();
         mapVal.put("user1","admin0001");
         mapVal.put("user2","employee001");
+        // 2. 开始 流程实例
         ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("user_task_assignee_el",mapVal);
+
+        // 3. 完成工作流
+        // 3.1 完成任务1
         Task task1= taskService.createTaskQuery()
                 .processInstanceId(processInstance.getId())
                 .singleResult();
         taskService.complete(task1.getId());
+        // 3.1 完成任务2
         Task task2= taskService.createTaskQuery()
                 .processInstanceId(processInstance.getId())
                 .singleResult();
         taskService.complete(task2.getId());
+        // 4. 查询工作流的参数历史信息
         List<HistoricVariableInstance> valList=  historyService.createHistoricVariableInstanceQuery()
                 .processInstanceId(processInstance.getId())
                 .list();
+        // 5. 断言历史参数实例信息是开始流程实例传入的参数值
         for (HistoricVariableInstance var : valList)
         {
+            Assert.isTrue(mapVal.get(var.getName()).equals(var.getValue()),"");
             log.info("Name is "+var.getName()+" and Value is "+var.getValue());
         }
     }
