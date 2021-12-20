@@ -18,6 +18,14 @@ camunda:
       db-reporter-activate: false
     # 禁止自动部署resources下面的bpmn文件
     auto-deployment-enabled: false
+    # 事件流的是否开启（默认全部开启状态）
+    eventing:
+      # 控制执行事件流是否开启
+      execution: true
+      # 历史事件流是否开启
+      history: true
+      # 任务事件流是否开启
+      task: true
     # 禁止index跳转到Camunda自带的管理界面，默认true
 #    webapp:
 #      index-redirect-enabled: false
