@@ -79,10 +79,14 @@ public class TaskAssigneeTests {
 
     @Test
     void task_assignee_listener_user_add_success(){
+        // 1. 开始流程实例
         ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("user_task_assignee_listener");
+        // 2. 找到对应任务
         Task task= taskService.createTaskQuery()
                 .processInstanceId(processInstance.getId())
+                .taskDefinitionKey("Activity_14bkfeu")
                 .singleResult();
+        // 3. 完成任务
         taskService.complete(task.getId());
         // 4. 查询工作流的任务历史实例信息
         HistoricTaskInstance taskInstance=  historyService.createHistoricTaskInstanceQuery()
