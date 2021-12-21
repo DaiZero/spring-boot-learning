@@ -5,7 +5,7 @@
       <bpmn:outgoing>Flow_0wjyz49</bpmn:outgoing>
     </bpmn:startEvent>
     <bpmn:sequenceFlow id="Flow_0wjyz49" sourceRef="StartEvent_1" targetRef="Activity_1g44ttz" />
-    <bpmn:userTask id="Activity_1g44ttz" name="负责人-EL表达式-user1" camunda:assignee="${user1}">
+    <bpmn:userTask id="Activity_1g44ttz" name="负责人-EL表达式-变量-user1" camunda:assignee="${user1}">
       <bpmn:incoming>Flow_0wjyz49</bpmn:incoming>
       <bpmn:outgoing>Flow_111jssq</bpmn:outgoing>
     </bpmn:userTask>
@@ -14,24 +14,24 @@
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="Flow_111jssq" sourceRef="Activity_1g44ttz" targetRef="Activity_1w3m07i" />
     <bpmn:sequenceFlow id="Flow_1s2ejj1" sourceRef="Activity_1w3m07i" targetRef="Event_1ouidvc" />
-    <bpmn:userTask id="Activity_1w3m07i" name="负责人-EL表达式-user2" camunda:assignee="${user2}">
+    <bpmn:userTask id="Activity_1w3m07i" name="负责人-EL表达式-接口方法-getLoginUserId" camunda:assignee="${UserService.getLoginUserId()}">
       <bpmn:incoming>Flow_111jssq</bpmn:incoming>
       <bpmn:outgoing>Flow_1s2ejj1</bpmn:outgoing>
     </bpmn:userTask>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="user_task_assignee_el">
-      <bpmndi:BPMNEdge id="Flow_0wjyz49_di" bpmnElement="Flow_0wjyz49">
-        <di:waypoint x="215" y="117" />
-        <di:waypoint x="270" y="117" />
+      <bpmndi:BPMNEdge id="Flow_1s2ejj1_di" bpmnElement="Flow_1s2ejj1">
+        <di:waypoint x="530" y="117" />
+        <di:waypoint x="562" y="117" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_111jssq_di" bpmnElement="Flow_111jssq">
         <di:waypoint x="370" y="117" />
         <di:waypoint x="430" y="117" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1s2ejj1_di" bpmnElement="Flow_1s2ejj1">
-        <di:waypoint x="530" y="117" />
-        <di:waypoint x="562" y="117" />
+      <bpmndi:BPMNEdge id="Flow_0wjyz49_di" bpmnElement="Flow_0wjyz49">
+        <di:waypoint x="215" y="117" />
+        <di:waypoint x="270" y="117" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
         <dc:Bounds x="179" y="99" width="36" height="36" />
@@ -39,11 +39,11 @@
       <bpmndi:BPMNShape id="Activity_1pwsbor_di" bpmnElement="Activity_1g44ttz">
         <dc:Bounds x="270" y="77" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1jjzure_di" bpmnElement="Activity_1w3m07i">
-        <dc:Bounds x="430" y="77" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_1ouidvc_di" bpmnElement="Event_1ouidvc">
         <dc:Bounds x="562" y="99" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1jjzure_di" bpmnElement="Activity_1w3m07i">
+        <dc:Bounds x="430" y="77" width="100" height="80" />
       </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
