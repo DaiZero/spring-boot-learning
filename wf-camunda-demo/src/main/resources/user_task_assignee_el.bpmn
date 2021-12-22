@@ -14,7 +14,7 @@
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="Flow_111jssq" sourceRef="Activity_1g44ttz" targetRef="Activity_1w3m07i" />
     <bpmn:sequenceFlow id="Flow_1s2ejj1" sourceRef="Activity_1w3m07i" targetRef="Event_1ouidvc" />
-    <bpmn:userTask id="Activity_1w3m07i" name="负责人-EL表达式-接口方法-getLoginUserId" camunda:assignee="${UserService.getLoginUserId()}">
+    <bpmn:userTask id="Activity_1w3m07i" name="负责人-EL表达式-接口方法-getLoginUser" camunda:assignee="${UserService.getLoginUser()}">
       <bpmn:incoming>Flow_111jssq</bpmn:incoming>
       <bpmn:outgoing>Flow_1s2ejj1</bpmn:outgoing>
     </bpmn:userTask>

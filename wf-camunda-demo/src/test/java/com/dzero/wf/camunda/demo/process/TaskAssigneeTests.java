@@ -99,9 +99,42 @@ public class TaskAssigneeTests {
         Assert.isTrue("dynamicAssignee001".equals(taskInstance.getAssignee()),"任务负责人不对");
     }
 
+    /**
+     * 委派
+     */
     @Test
-    void test(){
+    void delegateTest(){
+        // 1. 开始流程实例
+        ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("user_task_assignee_listener");
+        // 2. 找到对应任务
+        Task task= taskService.createTaskQuery()
+                .processInstanceId(processInstance.getId())
+                .taskDefinitionKey("Activity_14bkfeu")
+                .singleResult();
+        task.delegate("delegateUser"); // 被委派人
+        task.getOwner();// 委派人
+        taskService.delegateTask(task.getId(),"delegateUser");
+        // 被委托人解决任务
+        taskService.resolveTask(task.getId());
 
+        taskService.complete(task.getId());
+    }
+
+    /**
+     * 转办
+     */
+    @Test
+    void changedAssignee(){
+        // 1. 开始流程实例
+        ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("user_task_assignee_listener");
+        // 2. 找到对应任务
+        Task task= taskService.createTaskQuery()
+                .processInstanceId(processInstance.getId())
+                .taskDefinitionKey("Activity_14bkfeu")
+                .singleResult();
+        task.setAssignee("user2");
+        taskService.setAssignee(task.getId(),"user2");
+        taskService.complete(task.getId());
     }
 }
 
