@@ -1,14 +1,12 @@
 package com.dzero.wf.camunda.demo.task;
 
 import lombok.extern.slf4j.Slf4j;
-import org.camunda.bpm.engine.HistoryService;
-import org.camunda.bpm.engine.RepositoryService;
-import org.camunda.bpm.engine.RuntimeService;
-import org.camunda.bpm.engine.TaskService;
+import org.camunda.bpm.engine.*;
 import org.camunda.bpm.engine.history.HistoricTaskInstance;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.task.DelegationState;
 import org.camunda.bpm.engine.task.Task;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -109,42 +107,6 @@ public class TaskAssigneeTests {
     }
 
     /**
-     * 任务委派
-     */
-    @Test
-    void task_delegate() {
-        String fUser = "001";
-        String sUser = "002";
-        // 1. 开始流程实例
-        ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("user_task_assignee_001");
-        // 2. 找到对应任务
-        Task task = taskService.createTaskQuery()
-                .processInstanceId(processInstance.getId())
-                .taskDefinitionKey("task_001")
-                .singleResult();
-        // 断言：委派操作之前，Owner为空，Assignee为 001
-        Assert.isTrue(task.getOwner() == null, "任务拥有人错误");
-        Assert.isTrue(fUser.equals(task.getAssignee()), "任务负责人错误");
-        // 3. 【任务委派】将任务委托给 002
-        taskService.delegateTask(task.getId(), sUser);
-        // 查询任务最新信息
-        task = taskService.createTaskQuery().taskId(task.getId()).singleResult();
-        // 断言：任务委托状态为【等待】，Owner为001，Assignee为 002
-        Assert.isTrue(DelegationState.PENDING == task.getDelegationState(), "任务委托状态错误");
-        Assert.isTrue(fUser.equals(task.getOwner()), "任务拥有人错误");
-        Assert.isTrue(sUser.equals(task.getAssignee()), "任务负责人错误");
-        // 4. 【解决任务】被委托人解决任务
-        taskService.resolveTask(task.getId());
-        // 查询任务最新信息
-        task = taskService.createTaskQuery().taskId(task.getId()).singleResult();
-        // 断言：委托状态为【已解决】，任务负责人返回到 001
-        Assert.isTrue(DelegationState.RESOLVED == task.getDelegationState(), "任务委托状态错误");
-        Assert.isTrue(fUser.equals(task.getAssignee()), "任务负责人错误");
-        // 5. 完成任务
-        taskService.complete(task.getId());
-    }
-
-    /**
      * 任务转办
      */
     @Test
@@ -158,14 +120,14 @@ public class TaskAssigneeTests {
                 .processInstanceId(processInstance.getId())
                 .taskDefinitionKey("task_001")
                 .singleResult();
-        // 断言：委派操作之前，Owner为空，Assignee为 001
+        // 【断言】委派操作之前，Owner为空，Assignee为 001
         Assert.isTrue(task.getOwner() == null, "任务拥有人错误");
         Assert.isTrue(fUser.equals(task.getAssignee()), "任务负责人错误");
         // 3. 转办
         taskService.setAssignee(task.getId(), sUser);
         // 查询任务最新信息
         task = taskService.createTaskQuery().taskId(task.getId()).singleResult();
-        // 断言：委派操作之前，Owner为空，Assignee为 002
+        // 【断言】委派操作之前，Owner为空，Assignee为 002
         Assert.isTrue(task.getOwner() == null, "任务拥有人错误");
         Assert.isTrue(sUser.equals(task.getAssignee()), "任务负责人错误");
         // 4. 完成任务
@@ -173,13 +135,70 @@ public class TaskAssigneeTests {
     }
 
     /**
-     * 任务抢占
+     * 任务委派
      */
     @Test
-    void task_preempt_first_claim(){
-        String[] users = {"user001","user002","user003"};
-        Map<String,Object> variables = new HashMap<>();
-        variables.put("users", Arrays.asList(users));
+    void task_delegate() {
+        String fUser = "001";
+        String sUser = "002";
+        // 1. 开始流程实例
+        ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("user_task_assignee_001");
+        // 2. 找到对应任务
+        Task task = taskService.createTaskQuery()
+                .processInstanceId(processInstance.getId())
+                .taskDefinitionKey("task_001")
+                .singleResult();
+        // 【断言】委派操作之前，Owner为空，Assignee为 001
+        Assert.isTrue(task.getOwner() == null, "任务拥有人错误");
+        Assert.isTrue(fUser.equals(task.getAssignee()), "任务负责人错误");
+        // 3. 【任务委派】将任务委托给 002
+        taskService.delegateTask(task.getId(), sUser);
+        // 查询任务最新信息
+        task = taskService.createTaskQuery().taskId(task.getId()).singleResult();
+        // 【断言】任务委托状态为【等待】，Owner为001，Assignee为 002
+        Assert.isTrue(DelegationState.PENDING == task.getDelegationState(), "任务委托状态错误");
+        Assert.isTrue(fUser.equals(task.getOwner()), "任务拥有人错误");
+        Assert.isTrue(sUser.equals(task.getAssignee()), "任务负责人错误");
+        // 4. 【解决任务】被委托人解决任务
+        taskService.resolveTask(task.getId());
+        // 查询任务最新信息
+        task = taskService.createTaskQuery().taskId(task.getId()).singleResult();
+        // 【断言】委托状态为【已解决】，任务负责人返回到 001
+        Assert.isTrue(DelegationState.RESOLVED == task.getDelegationState(), "任务委托状态错误");
+        Assert.isTrue(fUser.equals(task.getAssignee()), "任务负责人错误");
+        // 5. 完成任务
+        taskService.complete(task.getId());
+    }
+
+    /**
+     * 任务抢占：分发给多人的任务，有一个人声明实现抢占后，其他人不可再声明，否则会抛出异常
+     */
+    @Test
+    void task_preempt_first_claim() {
+        String[] users = {"user001", "user002", "user003"};
+        Map<String, Object> mapVars = new HashMap<>();
+        mapVars.put("users", Arrays.asList(users));
+        // 1. 开始流程实例
+        ProcessInstance procInstance = runtimeService.startProcessInstanceByKey("user_task_users", mapVars);
+        // 2. 找到对应任务
+        Task task = taskService.createTaskQuery()
+                .processInstanceId(procInstance.getId())
+                .taskDefinitionKey("Activity_users_preempt")
+                .singleResult();
+        // 3.【断言】任务没有负责人
+        Assert.isNull(task.getAssignee(), "已制定负责人");
+        String taskId=task.getId();
+        // 4. 给任务声明负责人
+        taskService.claim(taskId, "user001");
+        task = taskService.createTaskQuery().taskId(taskId).singleResult();
+        // 5.【断言】任务负责人是user001
+        Assert.isTrue("user001".equals(task.getAssignee()), "已制定负责人");
+        // 6.【断言】再给任务声明负责人就会抛出异常
+        Assertions.assertThrows(TaskAlreadyClaimedException.class, () -> {
+            taskService.claim(taskId, "user002");
+        });
+        // 7. 完成任务
+        taskService.complete(taskId);
     }
 }
 
