@@ -1,8 +1,8 @@
 #camunda 配置
 camunda:
   bpm:
-#    generic-properties.properties:
-#      javaSerializationFormatEnabled: true
+    generic-properties.properties:
+      javaSerializationFormatEnabled: true
     # 配置账户密码来访问Camunda自带的管理界面
     admin-user:
       id: admin

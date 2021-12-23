@@ -17,13 +17,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * TaskAssigneeTest
+ * 用户任务负责人相关测试
  *
  * @author DaiZedong
  */
 @Slf4j
 @SpringBootTest
-public class TaskAssigneeTests {
+public class UserTaskAssigneeTests {
     @Autowired
     private RepositoryService repositoryService;
     @Autowired
@@ -187,7 +187,7 @@ public class TaskAssigneeTests {
                 .singleResult();
         // 3.【断言】任务没有负责人
         Assert.isNull(task.getAssignee(), "已制定负责人");
-        String taskId=task.getId();
+        String taskId = task.getId();
         // 4. 给任务声明负责人
         taskService.claim(taskId, "user001");
         task = taskService.createTaskQuery().taskId(taskId).singleResult();
