@@ -143,6 +143,42 @@ public class UserTaskCountersignTests {
 
     }
 
+    /**
+     * 多实例并行会签任务_临时【加签】操作测试
+     */
+    @Test
+    void user_task_countersign_parallel_addAssignee_success() {
+        // 0. 设置变量 assigneeList
+        String[] assigneeList = {"user001", "user002", "user003"};
+        Map<String, Object> mapVars = new HashMap<>();
+        mapVars.put("assigneeList", Arrays.asList(assigneeList));
+        // 1. 开始会签流程实例
+        ProcessInstance procInstance = runtimeService.startProcessInstanceByKey("user_task_countersign_parallel_001", mapVars);
+        String piId = procInstance.getId();
+        // 2. 进行【加签】操作，增加一个负责人：user004
+        runtimeService.createProcessInstanceModification(piId)
+                .startBeforeActivity("activity_countersign_parallel_001")
+                .setVariable("assignee", "user004")
+                .execute();
+        // 3. 查询流程实例下该任务下负责人是user004的任务
+        Task task4 = taskService.createTaskQuery()
+                .processInstanceId(piId)
+                .taskDefinitionKey("activity_countersign_parallel_001")
+                .taskAssigneeIn("user004")
+                .singleResult();
+        // 4.【断言】
+        Assert.isTrue(task4 != null && "user004".equals(task4.getAssignee()), "任务4的负责人user004不存在");
+
+        // 5. 完成所有任务
+        List<Task> taskList = taskService.createTaskQuery()
+                .processInstanceId(piId)
+                .taskDefinitionKey("activity_countersign_parallel_001")
+                .list();
+        for (Task task : taskList) {
+            taskService.complete(task.getId());
+        }
+    }
+
     private VariableInstance getVarInstanceByPiIdAndVarName(String piId, String varName) {
         return runtimeService.createVariableInstanceQuery()
                 .variableName(varName)
