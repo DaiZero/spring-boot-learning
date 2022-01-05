@@ -25,6 +25,7 @@
         <module>spring-boot-admin-server</module>
         <module>spring-boot-admin-client</module>
         <module>rabbitmq</module>
+        <module>redis</module>
         <module>redis-bloom-filter</module>
         <module>redis-lock</module>
         <module>mybatis-plus-template</module>
