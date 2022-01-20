@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 /**
  * 全局的异常配置
  * 只能拦截RestController调用层里的异常信息
+ * @author dzero
  */
 @RestControllerAdvice
 public class GlobalException {

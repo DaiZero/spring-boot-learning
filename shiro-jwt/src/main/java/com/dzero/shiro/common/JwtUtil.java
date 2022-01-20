@@ -9,11 +9,18 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @author dzero
+ */
 public class JwtUtil {
-    // 签名密钥
+    /**
+     * 签名密钥
+     */
     private static final String SECRET = "dzero";
-    // 过期时间
-    private static final Date expirationTime = new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000);
+    /**
+     * 过期时间
+     */
+    private static final Date EXPIRATION_TIME = new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000);
 
     /**
      * 生成token

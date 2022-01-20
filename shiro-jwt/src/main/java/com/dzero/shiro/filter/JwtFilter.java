@@ -8,6 +8,7 @@ import javax.servlet.ServletResponse;
 
 /**
  * 过滤器
+ * @author dzero
  */
 @Slf4j
 public class JwtFilter extends BasicHttpAuthenticationFilter {
@@ -15,10 +16,10 @@ public class JwtFilter extends BasicHttpAuthenticationFilter {
     /**
      * 是否允许访问
      *
-     * @param request
-     * @param response
+     * @param request 请求
+     * @param response 回复
      * @param mappedValue
-     * @return
+     * @return bool
      */
     @Override
     protected boolean isAccessAllowed(ServletRequest request, ServletResponse response, Object mappedValue) {
@@ -28,10 +29,10 @@ public class JwtFilter extends BasicHttpAuthenticationFilter {
     /**
      * 执行登录
      *
-     * @param request
-     * @param response
-     * @return
-     * @throws Exception
+     * @param request 请求
+     * @param response 回复
+     * @return 是否成功
+     * @throws Exception 异常
      */
     @Override
     protected boolean executeLogin(ServletRequest request, ServletResponse response) throws Exception {
@@ -41,7 +42,7 @@ public class JwtFilter extends BasicHttpAuthenticationFilter {
     /**
      * 是否接受登录
      *
-     * @param authzHeader
+     * @param authzHeader 验证头
      * @return
      */
     @Override
@@ -52,8 +53,8 @@ public class JwtFilter extends BasicHttpAuthenticationFilter {
     /**
      * 是否接受登录
      *
-     * @param request
-     * @param response
+     * @param request 请求
+     * @param response 回复
      * @return
      */
     @Override
