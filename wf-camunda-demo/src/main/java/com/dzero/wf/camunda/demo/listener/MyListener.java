@@ -17,6 +17,19 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class MyListener {
+
+    @EventListener(condition = "#event.eventName=='create'")
+    public void onTaskCreatedEvent(TaskEvent event) {
+        // handle immutable task event
+        log.info("handle task event {} for task id {}", event.getEventName(), event.getId());
+    }
+
+    @EventListener(condition = "#event.eventName=='complete'")
+    public void onTaskCompletedEvent(TaskEvent event) {
+        // handle immutable task event
+        log.info("handle task event {} for task id {}", event.getEventName(), event.getId());
+    }
+
     @EventListener
     public void onTaskEvent(DelegateTask taskDelegate) {
         // handle mutable task
