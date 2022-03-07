@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_0xcqd3z" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.12.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.15.0">
+  <bpmn:process id="user_task_assignee_dynamic" name="变量赋值动态负责人" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_1vp8dt1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_1vp8dt1" sourceRef="StartEvent_1" targetRef="Activity_0o6hudp" />
+    <bpmn:userTask id="Activity_0o6hudp" name="单负责人处理" camunda:assignee="${assignee}">
+      <bpmn:incoming>Flow_1vp8dt1</bpmn:incoming>
+      <bpmn:outgoing>Flow_13vzbv6</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="Event_1beivgb">
+      <bpmn:incoming>Flow_1h8ygoj</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1h8ygoj" sourceRef="Activity_0m4pxd7" targetRef="Event_1beivgb" />
+    <bpmn:userTask id="Activity_0m4pxd7" name="多负责人并行处理" camunda:assignee="${assignee}">
+      <bpmn:incoming>Flow_06ntukq</bpmn:incoming>
+      <bpmn:outgoing>Flow_1h8ygoj</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics camunda:collection="assigneeList_Activity_0m4pxd7" camunda:elementVariable="assignee" />
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_13vzbv6" sourceRef="Activity_0o6hudp" targetRef="Activity_0t7tutd" />
+    <bpmn:userTask id="Activity_0t7tutd" name="多负责人处理" camunda:candidateUsers="${assigneeList}">
+      <bpmn:incoming>Flow_13vzbv6</bpmn:incoming>
+      <bpmn:outgoing>Flow_06ntukq</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_06ntukq" sourceRef="Activity_0t7tutd" targetRef="Activity_0m4pxd7" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="user_task_assignee_dynamic">
+      <bpmndi:BPMNEdge id="Flow_1vp8dt1_di" bpmnElement="Flow_1vp8dt1">
+        <di:waypoint x="215" y="117" />
+        <di:waypoint x="270" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1h8ygoj_di" bpmnElement="Flow_1h8ygoj">
+        <di:waypoint x="720" y="117" />
+        <di:waypoint x="792" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_13vzbv6_di" bpmnElement="Flow_13vzbv6">
+        <di:waypoint x="370" y="117" />
+        <di:waypoint x="450" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_06ntukq_di" bpmnElement="Flow_06ntukq">
+        <di:waypoint x="550" y="117" />
+        <di:waypoint x="620" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="179" y="99" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_01qnbbc_di" bpmnElement="Activity_0o6hudp">
+        <dc:Bounds x="270" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1n1parc_di" bpmnElement="Activity_0t7tutd">
+        <dc:Bounds x="450" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1oz6fu1_di" bpmnElement="Activity_0m4pxd7">
+        <dc:Bounds x="620" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1beivgb_di" bpmnElement="Event_1beivgb">
+        <dc:Bounds x="792" y="99" width="36" height="36" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
