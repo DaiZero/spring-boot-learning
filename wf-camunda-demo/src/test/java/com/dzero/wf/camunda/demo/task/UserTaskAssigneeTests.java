@@ -14,6 +14,7 @@ import org.springframework.util.Assert;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -24,8 +25,6 @@ import java.util.Map;
 @Slf4j
 @SpringBootTest
 public class UserTaskAssigneeTests {
-    @Autowired
-    private RepositoryService repositoryService;
     @Autowired
     private HistoryService historyService;
     @Autowired
@@ -199,6 +198,59 @@ public class UserTaskAssigneeTests {
         });
         // 7. 完成任务
         taskService.complete(taskId);
+    }
+
+
+    /**
+     * 动态负责人，变量赋值
+     */
+    @Test
+    void dynamicAssignee() {
+        // 1. 开始流程实例,添加处理人变量的赋值
+        Map<String, Object> vars = new HashMap<>();
+        vars.put("assignee", "test001");
+        ProcessInstance processInstance = runtimeService
+                .startProcessInstanceByKey("user_task_assignee_dynamic", vars);
+        // 2. 任务节点【Activity_0o6hudp】的【assignee】赋值：${assignee}
+        Task task = taskService.createTaskQuery()
+                .processInstanceId(processInstance.getId())
+                .taskDefinitionKey("Activity_0o6hudp")
+                .singleResult();
+        // 3. 断言任务负责人无错
+        Assert.isTrue("test001".equals(task.getAssignee()), "任务负责人不对");
+
+        taskService.complete(task.getId());
+
+        // 任务节点【Activity_0t7tutd】的【candidateUsers】赋值： ${assigneeList}
+        Task tk2 = taskService.createTaskQuery()
+                .processInstanceId(processInstance.getId())
+                .taskDefinitionKey("Activity_0t7tutd")
+                .singleResult();
+        // 任务负责人声明（抢占任务，声明后其他人不可再声明该任务）
+        taskService.claim(tk2.getId(), "test002");
+        Task task2 = taskService.createTaskQuery().taskId(tk2.getId()).singleResult();
+        // 5.【断言】任务负责人
+        Assert.isTrue("test002".equals(task2.getAssignee()), "已制定负责人");
+        // 6.【断言】再给任务声明负责人就会抛出异常
+        Assertions.assertThrows(TaskAlreadyClaimedException.class, () -> {
+            taskService.claim(tk2.getId(), "test003");
+        });
+
+        // 完成任务2，并给 流程参数【assigneeList_Activity_0m4pxd7】赋值
+        String[] assigneeList3 = {"test004", "test005"};
+        Map<String, Object> mapVars3 = new HashMap<>();
+        mapVars3.put("assigneeList_Activity_0m4pxd7", Arrays.asList(assigneeList3));
+        taskService.complete(tk2.getId(),mapVars3);
+
+        // 【任务3】并发多任务节点-【Activity_0t7tutd】
+        // 任务节点【Activity_0t7tutd】的赋值： ${assigneeList_Activity_0m4pxd7}
+        List<Task> task3List = taskService.createTaskQuery()
+                .processInstanceId(processInstance.getId())
+                .taskDefinitionKey("Activity_0m4pxd7")
+                .list();
+        for (Task task3 : task3List) {
+            taskService.complete(task3.getId());
+        }
     }
 }
 
