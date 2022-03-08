@@ -10,6 +10,9 @@ import org.camunda.bpm.engine.impl.el.ExpressionManager;
 import org.camunda.bpm.engine.impl.history.event.HistoricActivityInstanceEventEntity;
 import org.camunda.bpm.engine.impl.history.event.HistoricProcessInstanceEventEntity;
 import org.camunda.bpm.engine.impl.history.event.HistoryEvent;
+import org.camunda.bpm.engine.impl.persistence.entity.ExecutionEntity;
+import org.camunda.bpm.model.bpmn.instance.EndEvent;
+import org.camunda.bpm.model.bpmn.instance.StartEvent;
 import org.camunda.bpm.spring.boot.starter.event.ExecutionEvent;
 import org.camunda.bpm.spring.boot.starter.event.TaskEvent;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,18 +51,21 @@ public class MyListener {
     }
 
     @EventListener
-    public void onExecutionEvent(DelegateExecution executionDelegate) {
-        // handle mutable execution event
-        if ("start".equals(executionDelegate.getEventName()) && executionDelegate.getActivityInstanceId() != null && Objects.equals(executionDelegate.getCurrentActivityId(), "StartEvent_1")) {
+    public void onExecutionEvent(DelegateExecution execution) {
+        boolean isStartEvent = execution.getBpmnModelElementInstance() instanceof StartEvent;
+        boolean isEndEvent = execution.getBpmnModelElementInstance() instanceof EndEvent;
+        ExecutionEntity entity = (ExecutionEntity) execution;
+        if (isStartEvent && "start".equals(execution.getEventName()) && entity.getActivityInstanceState() == 0) {
+            log.info("onExecutionEvent=====做流程扩展元素");
             // 获取流程扩展属性
-            Map<String, Object> exProps = camundaService.getProcessExProperties(executionDelegate.getProcessDefinitionId());
+            Map<String, Object> exProps = camundaService.getProcessExProperties(execution.getProcessDefinitionId());
             Object exp = exProps.get("loginUser");
             // el表达式解析
             ExpressionManager expressionManager = processEngineConfiguration.getExpressionManager();
             Expression expression = expressionManager.createExpression((String) exp);
-            expression.getValue(executionDelegate);
+            expression.getValue(execution);
         }
-        log.info("========= DelegateExecution =========" + executionDelegate.getEventName() + "====" + executionDelegate.getProcessInstanceId());
+        log.info("========= DelegateExecution =========" + execution.getEventName() + "====" + execution.getProcessInstanceId());
     }
 
     @EventListener
