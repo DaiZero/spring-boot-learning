@@ -1,15 +1,23 @@
 package com.dzero.wf.camunda.demo.listener;
 
+import com.dzero.wf.camunda.demo.service.CamundaService;
 import lombok.extern.slf4j.Slf4j;
 import org.camunda.bpm.engine.delegate.DelegateTask;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
+import org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
+import org.camunda.bpm.engine.impl.el.Expression;
+import org.camunda.bpm.engine.impl.el.ExpressionManager;
 import org.camunda.bpm.engine.impl.history.event.HistoricActivityInstanceEventEntity;
 import org.camunda.bpm.engine.impl.history.event.HistoricProcessInstanceEventEntity;
 import org.camunda.bpm.engine.impl.history.event.HistoryEvent;
 import org.camunda.bpm.spring.boot.starter.event.ExecutionEvent;
 import org.camunda.bpm.spring.boot.starter.event.TaskEvent;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * MyListener
@@ -19,22 +27,17 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class MyListener {
-
-//    @EventListener(condition = "#event.eventName=='create'")
-//    public void onTaskCreatedEvent(TaskEvent event) {
-//        // handle immutable task event
-//        log.info("handle task event {} for task id {}", event.getEventName(), event.getId());
-//    }
-//
-//    @EventListener(condition = "#event.eventName=='complete'")
-//    public void onTaskCompletedEvent(TaskEvent event) {
-//        // handle immutable task event
-//        log.info("handle task event {} for task id {}", event.getEventName(), event.getId());
-//    }
+    @Autowired
+    private ProcessEngineConfigurationImpl processEngineConfiguration;
+    @Autowired
+    private CamundaService camundaService;
 
     @EventListener
     public void onTaskEvent(DelegateTask taskDelegate) {
         // handle mutable task
+        if ("assignment".equals(taskDelegate.getEventName())) {
+        }
+        taskDelegate.getProcessDefinitionId();
         log.info("========= DelegateTask =========" + taskDelegate.getEventName() + "====" + taskDelegate.getProcessInstanceId());
     }
 
@@ -47,6 +50,15 @@ public class MyListener {
     @EventListener
     public void onExecutionEvent(DelegateExecution executionDelegate) {
         // handle mutable execution event
+        if ("start".equals(executionDelegate.getEventName()) && executionDelegate.getActivityInstanceId() != null && Objects.equals(executionDelegate.getCurrentActivityId(), "StartEvent_1")) {
+            // 获取流程扩展属性
+            Map<String, Object> exProps = camundaService.getProcessExProperties(executionDelegate.getProcessDefinitionId());
+            Object exp = exProps.get("loginUser");
+            // el表达式解析
+            ExpressionManager expressionManager = processEngineConfiguration.getExpressionManager();
+            Expression expression = expressionManager.createExpression((String) exp);
+            expression.getValue(executionDelegate);
+        }
         log.info("========= DelegateExecution =========" + executionDelegate.getEventName() + "====" + executionDelegate.getProcessInstanceId());
     }
 
@@ -73,8 +85,9 @@ public class MyListener {
                     break;
             }
         } else if (historyEvent instanceof HistoricActivityInstanceEventEntity) {
-            HistoricActivityInstanceEventEntity activityInstanceEvent = (HistoricActivityInstanceEventEntity)historyEvent;
-            if ("userTask".equals(activityInstanceEvent.getActivityType()) && "start".equals(activityInstanceEvent.getEventType())) {
+            HistoricActivityInstanceEventEntity activityInstanceEvent = (HistoricActivityInstanceEventEntity) historyEvent;
+            if ("userTask".equals(activityInstanceEvent.getActivityType()) &&
+                    "start".equals(activityInstanceEvent.getEventType())) {
                 log.info("historyEvent");
             }
         }
