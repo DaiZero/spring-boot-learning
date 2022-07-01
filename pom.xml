@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.6.2</version>
+        <version>2.7.1</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.dzero</groupId>
@@ -31,7 +31,8 @@
         <module>mybatis-plus-template</module>
         <module>mybatis-template</module>
         <module>wf-camunda-demo</module>
-        <module>wf-camunda-simple-demo</module>
+        <module>shiro-jwt</module>
+        <module>jpa-dynamic</module>
     </modules>
 
 </project>
