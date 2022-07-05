@@ -19,11 +19,23 @@ import org.hibernate.tool.schema.TargetType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import schemacrawler.crawl.SchemaCrawler;
+import schemacrawler.schema.Catalog;
+import schemacrawler.schema.Column;
+import schemacrawler.schema.Schema;
+import schemacrawler.schema.Table;
+import schemacrawler.schemacrawler.SchemaCrawlerOptions;
+import schemacrawler.schemacrawler.SchemaCrawlerOptionsBuilder;
+import schemacrawler.schemacrawler.SchemaInfoLevel;
+import schemacrawler.tools.utility.SchemaCrawlerUtility;
 
 import javax.annotation.Resource;
 import javax.persistence.EntityManagerFactory;
+import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.*;
 
 import static net.bytebuddy.matcher.ElementMatchers.named;
@@ -82,6 +94,8 @@ public class UserController {
         Session newSession = newSessionFactory.openSession();
         for (int i = 0; i < 10; i++) {
             Map<String, Object> book = new HashMap<>();
+            book.put("id", i);
+            book.put("name", "book" + i);
             newSession.save("BookEntity", book);
         }
         // 查询所有对象
@@ -90,6 +104,36 @@ public class UserController {
         System.out.println("resultList: " + list);
         // 关闭会话
         newSession.close();
+    }
+
+    @Resource
+    private DataSource dataSource;
+
+    @GetMapping("/scheme")
+    void getScheme() {
+        final SchemaCrawlerOptions options = SchemaCrawlerOptionsBuilder.newSchemaCrawlerOptions();
+        final Catalog catalog;
+        try {
+            catalog = SchemaCrawlerUtility.getCatalog(dataSource.getConnection(), options);
+            for (final Schema schema : catalog.getSchemas()) {
+                if ("PUBLIC".equals(schema.getName())) {
+                    for (final Table table : catalog.getTables(schema)) {
+                        System.out.println("【表】" + table);
+                        System.out.println("【表名】" + table.getName());
+                        for (final Column column : table.getColumns()) {
+                            Object type = column.getType();
+                            System.out.println("    【字段名】" + column.getName());
+                            System.out.println("    【字段类型】" + type);
+                            System.out.println("    【字段默认值】" + column.getDefaultValue());
+                            System.out.println("    【是否为空】" + column.getType().isNullable());
+                        }
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
 }
