@@ -11,7 +11,7 @@ import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
 
 import java.util.Optional;
 
-@Configuration
+//@Configuration
 public class DynamicJpaBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
 
     private static final Logger LOG = LoggerFactory.getLogger(DynamicJpaBeanFactoryPostProcessor.class);

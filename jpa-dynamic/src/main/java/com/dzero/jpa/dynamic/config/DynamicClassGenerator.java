@@ -2,25 +2,23 @@ package com.dzero.jpa.dynamic.config;
 
 import com.dzero.jpa.dynamic.common.BaseEntity;
 import com.dzero.jpa.dynamic.common.BaseRepository;
-import com.dzero.jpa.dynamic.entity.UserEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.description.annotation.AnnotationDescription;
-import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.description.type.TypeDescription.Generic;
 import net.bytebuddy.dynamic.DynamicType.Loaded;
 import net.bytebuddy.dynamic.DynamicType.Unloaded;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -41,6 +39,8 @@ public class DynamicClassGenerator {
                                         .define("chain", true).build(),
                                 AnnotationDescription.Builder.ofType(EqualsAndHashCode.class).define("callSuper", true).build(),
                                 AnnotationDescription.Builder.ofType(Table.class).define("name", tableName).build())
+                        .defineProperty("name", String.class)
+                        .annotateField(AnnotationDescription.Builder.ofType(Column.class).define("name", "name").build())
                         .name(entityClassName)
                         .make();
         return Optional.of(saveGeneratedClassAsFile(generatedClass));
