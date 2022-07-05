@@ -16,6 +16,13 @@ import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.query.Query;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.hibernate.tool.schema.TargetType;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -104,6 +111,55 @@ public class UserController {
         System.out.println("resultList: " + list);
         // 关闭会话
         newSession.close();
+    }
+
+    @Resource
+    private ApplicationContext applicationContext;
+
+    @GetMapping("/test2")
+    void dynamicReposTest(){
+        DynamicClassGenerator dynamicClassGenerator = new DynamicClassGenerator();
+        String packageName = "com.dzero.jpa.dynamic";
+        Optional<Class<?>> entityClass = dynamicClassGenerator.createJpaEntity(packageName + ".entity.BookEntity", "book");
+        Optional<Class<?>> repoClass =
+                dynamicClassGenerator.createJpaRepository(entityClass.get(), packageName + ".repository.BookRepository" );
+        removeExistingAndAddNewEntityBean(entityClass.get());
+        removeExistingAndAddNewRepoBean(repoClass.get());
+    }
+
+    public void removeExistingAndAddNewEntityBean(Class<?> entityClass) {
+        AutowireCapableBeanFactory factory = applicationContext.getAutowireCapableBeanFactory();
+        BeanDefinitionRegistry registry = (BeanDefinitionRegistry) factory;
+        try {
+            registry.removeBeanDefinition(entityClass.getSimpleName());
+        }catch (NoSuchBeanDefinitionException e) {
+            System.out.println("No Such Bean Definition");
+        }
+
+
+        //create newBeanObj through GenericBeanDefinition
+        BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition().addConstructorArgValue(entityClass);
+        registry.registerBeanDefinition(entityClass.getSimpleName(),beanDefinitionBuilder.getBeanDefinition());
+
+//        JpaRepositoryFactoryBean jpaRepositoryFactoryBean= applicationContext.getBean(jpaRepositoryClass.getSimpleName(), JpaRepositoryFactoryBean.class);
+    }
+
+    public void removeExistingAndAddNewRepoBean(Class<?> jpaRepositoryClass) {
+        AutowireCapableBeanFactory factory = applicationContext.getAutowireCapableBeanFactory();
+        BeanDefinitionRegistry registry = (BeanDefinitionRegistry) factory;
+        try {
+            registry.removeBeanDefinition(jpaRepositoryClass.getSimpleName());
+        }catch (NoSuchBeanDefinitionException e) {
+           System.out.println("No Such Bean Definition");
+        }
+
+
+        //create newBeanObj through GenericBeanDefinition
+        BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder
+                .rootBeanDefinition(JpaRepositoryFactoryBean.class).addConstructorArgValue(jpaRepositoryClass);
+        registry.registerBeanDefinition(jpaRepositoryClass.getSimpleName(), beanDefinitionBuilder.getBeanDefinition());
+
+//        JpaRepositoryFactoryBean jpaRepositoryFactoryBean= applicationContext.getBean(jpaRepositoryClass.getSimpleName(), JpaRepositoryFactoryBean.class);
     }
 
     @Resource
