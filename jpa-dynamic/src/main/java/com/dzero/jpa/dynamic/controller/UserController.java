@@ -1,7 +1,11 @@
 package com.dzero.jpa.dynamic.controller;
 
+import cn.hutool.json.JSON;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.dzero.jpa.dynamic.config.DynamicClassGenerator;
 import com.dzero.jpa.dynamic.entity.UserEntity;
+import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.agent.ByteBuddyAgent;
 import net.bytebuddy.dynamic.DynamicType;
@@ -41,12 +45,16 @@ import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static net.bytebuddy.matcher.ElementMatchers.named;
 
+@Slf4j
 @RestController
 @RequestMapping("/v1/user")
 public class UserController {
@@ -64,7 +72,7 @@ public class UserController {
                             ClassReloadingStrategy.fromInstalledAgent())
                     .saveIn(new File("target/classes"));
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            log.error("", e);
         }
     }
 
@@ -108,7 +116,7 @@ public class UserController {
         // 查询所有对象
         Query query = newSession.createQuery("from BookEntity");
         List list = query.getResultList();
-        System.out.println("resultList: " + list);
+        log.info("resultList: " + list);
         // 关闭会话
         newSession.close();
     }
@@ -116,13 +124,45 @@ public class UserController {
     @Resource
     private ApplicationContext applicationContext;
 
+    @GetMapping("/test2/list")
+    void dynamicReposTestList() {
+        try {
+            Class<?> repoClass = Thread.currentThread().getContextClassLoader().loadClass("com.dzero.jpa.dynamic.repository.BookRepository");
+            Object result = repoClass.getMethod("findAll")
+                    .invoke(applicationContext.getBean(repoClass));
+            log.info("result: " + result);
+        } catch (NoSuchMethodException | ClassNotFoundException | IllegalAccessException |
+                 InvocationTargetException e) {
+            log.error("", e);
+        }
+    }
+
+    @GetMapping("/test2/add")
+    void dynamicReposTestAdd() {
+        try {
+            Class<?> entityClass = Thread.currentThread().getContextClassLoader().loadClass("com.dzero.jpa.dynamic.entity.BookEntity");
+            Class<?> repoClass = Thread.currentThread().getContextClassLoader().loadClass("com.dzero.jpa.dynamic.repository.BookRepository");
+            JSONObject book = JSONUtil.createObj();
+            book.set("id", LocalDateTime.now().getNano());
+            book.set("name", "book10");
+            Method method = repoClass.getMethod("save", new Class[] { entityClass.getClass() });
+
+            Object repoClassObj = applicationContext.getBean(repoClass);
+            Object result = method.invoke(repoClassObj, book);
+            log.info("result: " + result);
+        } catch (NoSuchMethodException | ClassNotFoundException | IllegalAccessException |
+                 InvocationTargetException e) {
+            log.error("", e);
+        }
+    }
+
     @GetMapping("/test2")
-    void dynamicReposTest(){
+    void dynamicReposTest() {
         DynamicClassGenerator dynamicClassGenerator = new DynamicClassGenerator();
         String packageName = "com.dzero.jpa.dynamic";
         Optional<Class<?>> entityClass = dynamicClassGenerator.createJpaEntity(packageName + ".entity.BookEntity", "book");
         Optional<Class<?>> repoClass =
-                dynamicClassGenerator.createJpaRepository(entityClass.get(), packageName + ".repository.BookRepository" );
+                dynamicClassGenerator.createJpaRepository(entityClass.get(), packageName + ".repository.BookRepository");
         removeExistingAndAddNewEntityBean(entityClass.get());
         removeExistingAndAddNewRepoBean(repoClass.get());
     }
@@ -132,15 +172,12 @@ public class UserController {
         BeanDefinitionRegistry registry = (BeanDefinitionRegistry) factory;
         try {
             registry.removeBeanDefinition(entityClass.getSimpleName());
-        }catch (NoSuchBeanDefinitionException e) {
+        } catch (NoSuchBeanDefinitionException e) {
             System.out.println("No Such Bean Definition");
         }
-
-
         //create newBeanObj through GenericBeanDefinition
         BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition().addConstructorArgValue(entityClass);
-        registry.registerBeanDefinition(entityClass.getSimpleName(),beanDefinitionBuilder.getBeanDefinition());
-
+        registry.registerBeanDefinition(entityClass.getSimpleName(), beanDefinitionBuilder.getBeanDefinition());
 //        JpaRepositoryFactoryBean jpaRepositoryFactoryBean= applicationContext.getBean(jpaRepositoryClass.getSimpleName(), JpaRepositoryFactoryBean.class);
     }
 
@@ -149,16 +186,13 @@ public class UserController {
         BeanDefinitionRegistry registry = (BeanDefinitionRegistry) factory;
         try {
             registry.removeBeanDefinition(jpaRepositoryClass.getSimpleName());
-        }catch (NoSuchBeanDefinitionException e) {
-           System.out.println("No Such Bean Definition");
+        } catch (NoSuchBeanDefinitionException e) {
+            System.out.println("No Such Bean Definition");
         }
-
-
         //create newBeanObj through GenericBeanDefinition
         BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder
                 .rootBeanDefinition(JpaRepositoryFactoryBean.class).addConstructorArgValue(jpaRepositoryClass);
         registry.registerBeanDefinition(jpaRepositoryClass.getSimpleName(), beanDefinitionBuilder.getBeanDefinition());
-
 //        JpaRepositoryFactoryBean jpaRepositoryFactoryBean= applicationContext.getBean(jpaRepositoryClass.getSimpleName(), JpaRepositoryFactoryBean.class);
     }
 

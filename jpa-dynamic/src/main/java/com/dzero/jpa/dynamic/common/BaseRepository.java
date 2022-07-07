@@ -13,6 +13,11 @@ import java.util.Optional;
 @NoRepositoryBean
 public interface BaseRepository<T extends BaseEntity, ID extends Serializable>
     extends CrudRepository<T, ID> {
+  @Transactional
+  default <S extends T> S add(S entity){
+    return save(entity);
+  }
+
   @NotNull
   @Override
   @Transactional(readOnly = true)

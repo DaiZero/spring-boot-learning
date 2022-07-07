@@ -23,10 +23,14 @@ import java.util.Optional;
 
 @Slf4j
 public class DynamicClassGenerator {
-    public Optional<Class<?>> createJpaEntity(String entityClassName, String tableName) {
+    public Optional<Class<?>> createJpaEntity(String entityClassName, String tableName){
         if (classFileExists(entityClassName)) {
             log.info("【*******】【The Entity class " + entityClassName + " already exists, not creating a new one】");
-            return Optional.empty();
+            try {
+                return Optional.of(Class.forName(entityClassName));
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
         }
         log.info("【*******】【Creating new Entity class: {}...】", entityClassName);
         Unloaded<?> generatedClass =
