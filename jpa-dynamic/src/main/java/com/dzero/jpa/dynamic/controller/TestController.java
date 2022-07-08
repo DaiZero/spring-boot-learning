@@ -1,15 +1,11 @@
 package com.dzero.jpa.dynamic.controller;
 
-import cn.hutool.json.JSON;
-import cn.hutool.json.JSONObject;
-import cn.hutool.json.JSONUtil;
+import com.dzero.jpa.dynamic.common.ObjectUtil;
 import com.dzero.jpa.dynamic.config.DynamicClassGenerator;
 import com.dzero.jpa.dynamic.entity.UserEntity;
 import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.agent.ByteBuddyAgent;
-import net.bytebuddy.dynamic.DynamicType;
-import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import net.bytebuddy.dynamic.loading.ClassReloadingStrategy;
 import net.bytebuddy.implementation.FixedValue;
 import org.hibernate.Session;
@@ -24,40 +20,47 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import schemacrawler.crawl.SchemaCrawler;
 import schemacrawler.schema.Catalog;
 import schemacrawler.schema.Column;
 import schemacrawler.schema.Schema;
 import schemacrawler.schema.Table;
 import schemacrawler.schemacrawler.SchemaCrawlerOptions;
 import schemacrawler.schemacrawler.SchemaCrawlerOptionsBuilder;
-import schemacrawler.schemacrawler.SchemaInfoLevel;
 import schemacrawler.tools.utility.SchemaCrawlerUtility;
 
 import javax.annotation.Resource;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
+import java.beans.BeanInfo;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.sql.Connection;
+import java.lang.reflect.Type;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
 import java.util.*;
 
 import static net.bytebuddy.matcher.ElementMatchers.named;
 
 @Slf4j
 @RestController
-@RequestMapping("/v1/user")
-public class UserController {
+@RequestMapping("/v1/test")
+public class TestController {
+    @Resource
+    private ApplicationContext applicationContext;
+    @Resource
+    private EntityManagerFactory entityManagerFactory;
+    @Resource
+    private DataSource dataSource;
+
     @GetMapping("/change")
     public void change() {
         ByteBuddyAgent.install();
@@ -76,17 +79,13 @@ public class UserController {
         }
     }
 
-
     @GetMapping("/hello")
     public String hello() {
         UserEntity f = new UserEntity();
         return f.sayHelloFoo();
     }
 
-    @Resource
-    private EntityManagerFactory entityManagerFactory;
-
-    @GetMapping("/test")
+    @GetMapping("/book/init")
     void testDynamicDdl2() {
         DynamicClassGenerator dynamicClassGenerator = new DynamicClassGenerator();
         String packageName = "com.dzero.jpa.dynamic";
@@ -121,38 +120,79 @@ public class UserController {
         newSession.close();
     }
 
-    @Resource
-    private ApplicationContext applicationContext;
+    @GetMapping("/book/add")
+    Object dynamicReposTestAdd() {
+        try {
+            Class<?> entityClass = Thread.currentThread().getContextClassLoader().loadClass("com.dzero.jpa.dynamic.entity.BookEntity");
+            Class<?> repoClass = Thread.currentThread().getContextClassLoader().loadClass("com.dzero.jpa.dynamic.repository.BookRepository");
+            for (Method method : repoClass.getMethods()) {
+                log.info("方法：" + method.getName());
+                Type[] paramTypeArr = method.getParameterTypes();
+                for (int i = 0; i < paramTypeArr.length; i++) {
+                    log.info("参数" + (i + 1) + "类型：" + paramTypeArr[i] + " ; ");
+                }
+            }
 
-    @GetMapping("/test2/list")
-    void dynamicReposTestList() {
+//            // 获取构造方法
+//            for (Constructor<?> constructor : entityClass.getConstructors()) {
+//                log.info("构造方法：" + constructor.getName());
+//            }
+//
+//            Map<String, Object> bookMap = new HashMap<>();
+//            bookMap.put("id",System.currentTimeMillis());
+//            bookMap.put("name","book10");
+//            bookMap.put("revision",1);
+//            Object bookObj = null;
+//            try {
+//                bookObj = mapToObject(bookMap,entityClass);
+//            } catch (Exception e) {
+//                throw new RuntimeException(e);
+//            }
+
+            Method method = repoClass.getMethod("existsById", Object.class);
+            Object repoClassObj = applicationContext.getBean(repoClass);
+            Object result = method.invoke(repoClassObj, 1L);
+            log.info("result: " + result);
+
+            Method savemMethod = repoClass.getMethod("save", Object.class);
+//            Class<?> clazz = Class.forName(className);
+//            Object instance = clazz.newInstance();
+//            set(instance, "salary", 15);
+//            set(instance, "firstname", "John");
+
+            Map<String, Object> bookMap = new HashMap<>();
+//            bookMap.put("id", System.currentTimeMillis());
+            bookMap.put("name", "book10");
+            bookMap.put("revision", 1);
+            bookMap.put("delFlag", 0);
+            Object bookObj = null;
+            try {
+                bookObj = ObjectUtil.mapToObject(bookMap, entityClass);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            Object result2 = savemMethod.invoke(repoClassObj, bookObj);
+            log.info("result2: " + result2);
+            return result2;
+        } catch (NoSuchMethodException | ClassNotFoundException | IllegalAccessException |
+                 InvocationTargetException e) {
+            log.error("", e);
+            return null;
+        }
+    }
+
+    @GetMapping("/book/list")
+    Object dynamicReposTestList() {
         try {
             Class<?> repoClass = Thread.currentThread().getContextClassLoader().loadClass("com.dzero.jpa.dynamic.repository.BookRepository");
             Object result = repoClass.getMethod("findAll")
                     .invoke(applicationContext.getBean(repoClass));
             log.info("result: " + result);
+            return result;
         } catch (NoSuchMethodException | ClassNotFoundException | IllegalAccessException |
                  InvocationTargetException e) {
             log.error("", e);
-        }
-    }
-
-    @GetMapping("/test2/add")
-    void dynamicReposTestAdd() {
-        try {
-            Class<?> entityClass = Thread.currentThread().getContextClassLoader().loadClass("com.dzero.jpa.dynamic.entity.BookEntity");
-            Class<?> repoClass = Thread.currentThread().getContextClassLoader().loadClass("com.dzero.jpa.dynamic.repository.BookRepository");
-            JSONObject book = JSONUtil.createObj();
-            book.set("id", LocalDateTime.now().getNano());
-            book.set("name", "book10");
-            Method method = repoClass.getMethod("save", new Class[] { entityClass.getClass() });
-
-            Object repoClassObj = applicationContext.getBean(repoClass);
-            Object result = method.invoke(repoClassObj, book);
-            log.info("result: " + result);
-        } catch (NoSuchMethodException | ClassNotFoundException | IllegalAccessException |
-                 InvocationTargetException e) {
-            log.error("", e);
+            return null;
         }
     }
 
@@ -173,7 +213,7 @@ public class UserController {
         try {
             registry.removeBeanDefinition(entityClass.getSimpleName());
         } catch (NoSuchBeanDefinitionException e) {
-            System.out.println("No Such Bean Definition");
+            log.info("No Such Bean Definition");
         }
         //create newBeanObj through GenericBeanDefinition
         BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition().addConstructorArgValue(entityClass);
@@ -187,7 +227,7 @@ public class UserController {
         try {
             registry.removeBeanDefinition(jpaRepositoryClass.getSimpleName());
         } catch (NoSuchBeanDefinitionException e) {
-            System.out.println("No Such Bean Definition");
+            log.info("No Such Bean Definition");
         }
         //create newBeanObj through GenericBeanDefinition
         BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder
@@ -195,9 +235,6 @@ public class UserController {
         registry.registerBeanDefinition(jpaRepositoryClass.getSimpleName(), beanDefinitionBuilder.getBeanDefinition());
 //        JpaRepositoryFactoryBean jpaRepositoryFactoryBean= applicationContext.getBean(jpaRepositoryClass.getSimpleName(), JpaRepositoryFactoryBean.class);
     }
-
-    @Resource
-    private DataSource dataSource;
 
     @GetMapping("/scheme")
     void getScheme() {
@@ -208,22 +245,20 @@ public class UserController {
             for (final Schema schema : catalog.getSchemas()) {
                 if ("PUBLIC".equals(schema.getName())) {
                     for (final Table table : catalog.getTables(schema)) {
-                        System.out.println("【表】" + table);
-                        System.out.println("【表名】" + table.getName());
+                        log.info("【表】" + table);
+                        log.info("【表名】" + table.getName());
                         for (final Column column : table.getColumns()) {
                             Object type = column.getType();
-                            System.out.println("    【字段名】" + column.getName());
-                            System.out.println("    【字段类型】" + type);
-                            System.out.println("    【字段默认值】" + column.getDefaultValue());
-                            System.out.println("    【是否为空】" + column.getType().isNullable());
+                            log.info("    【字段名】" + column.getName());
+                            log.info("    【字段类型】" + type);
+                            log.info("    【字段默认值】" + column.getDefaultValue());
+                            log.info("    【是否为空】" + column.getType().isNullable());
                         }
                     }
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+           log.error("", e);
         }
-
     }
-
 }
