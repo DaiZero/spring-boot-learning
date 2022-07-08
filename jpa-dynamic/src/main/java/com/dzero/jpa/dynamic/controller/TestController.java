@@ -1,5 +1,7 @@
 package com.dzero.jpa.dynamic.controller;
 
+import com.dzero.jpa.dynamic.common.BaseEntity;
+import com.dzero.jpa.dynamic.common.BaseRepository;
 import com.dzero.jpa.dynamic.common.ObjectUtil;
 import com.dzero.jpa.dynamic.config.DynamicClassGenerator;
 import com.dzero.jpa.dynamic.entity.UserEntity;
@@ -36,12 +38,8 @@ import schemacrawler.tools.utility.SchemaCrawlerUtility;
 import javax.annotation.Resource;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
-import java.beans.BeanInfo;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -61,7 +59,7 @@ public class TestController {
     @Resource
     private DataSource dataSource;
 
-    @GetMapping("/change")
+    @GetMapping("/user/change")
     public void change() {
         ByteBuddyAgent.install();
         try {
@@ -79,14 +77,14 @@ public class TestController {
         }
     }
 
-    @GetMapping("/hello")
+    @GetMapping("/user/hello")
     public String hello() {
         UserEntity f = new UserEntity();
         return f.sayHelloFoo();
     }
 
-    @GetMapping("/book/init")
-    void testDynamicDdl2() {
+    @GetMapping("/book/test")
+    public void testDynamicDdl2() {
         DynamicClassGenerator dynamicClassGenerator = new DynamicClassGenerator();
         String packageName = "com.dzero.jpa.dynamic";
         dynamicClassGenerator.createJpaEntity(packageName + ".entity.BookEntity", "book");
@@ -120,11 +118,23 @@ public class TestController {
         newSession.close();
     }
 
+    @GetMapping("/book/init")
+    public void dynamicReposTest() {
+        DynamicClassGenerator dynamicClassGenerator = new DynamicClassGenerator();
+        String packageName = "com.dzero.jpa.dynamic";
+        Optional<Class<?>> entityClass = dynamicClassGenerator.createJpaEntity(packageName + ".entity.BookEntity", "book");
+        Optional<Class<?>> repoClass =
+                dynamicClassGenerator.createJpaRepository(entityClass.get(), packageName + ".repository.BookRepository");
+        removeExistingAndAddNewEntityBean(entityClass.get());
+        removeExistingAndAddNewRepoBean(repoClass.get());
+    }
+
     @GetMapping("/book/add")
-    Object dynamicReposTestAdd() {
+    public Object dynamicReposTestAdd() {
         try {
             Class<?> entityClass = Thread.currentThread().getContextClassLoader().loadClass("com.dzero.jpa.dynamic.entity.BookEntity");
             Class<?> repoClass = Thread.currentThread().getContextClassLoader().loadClass("com.dzero.jpa.dynamic.repository.BookRepository");
+
             for (Method method : repoClass.getMethods()) {
                 log.info("方法：" + method.getName());
                 Type[] paramTypeArr = method.getParameterTypes();
@@ -165,7 +175,7 @@ public class TestController {
             bookMap.put("name", "book10");
             bookMap.put("revision", 1);
             bookMap.put("delFlag", 0);
-            Object bookObj = null;
+            Object bookObj;
             try {
                 bookObj = ObjectUtil.mapToObject(bookMap, entityClass);
             } catch (Exception e) {
@@ -181,8 +191,8 @@ public class TestController {
         }
     }
 
-    @GetMapping("/book/list")
-    Object dynamicReposTestList() {
+    @GetMapping("/book/list2")
+    public Object dynamicReposTestListByReflect() {
         try {
             Class<?> repoClass = Thread.currentThread().getContextClassLoader().loadClass("com.dzero.jpa.dynamic.repository.BookRepository");
             Object result = repoClass.getMethod("findAll")
@@ -196,15 +206,18 @@ public class TestController {
         }
     }
 
-    @GetMapping("/test2")
-    void dynamicReposTest() {
-        DynamicClassGenerator dynamicClassGenerator = new DynamicClassGenerator();
-        String packageName = "com.dzero.jpa.dynamic";
-        Optional<Class<?>> entityClass = dynamicClassGenerator.createJpaEntity(packageName + ".entity.BookEntity", "book");
-        Optional<Class<?>> repoClass =
-                dynamicClassGenerator.createJpaRepository(entityClass.get(), packageName + ".repository.BookRepository");
-        removeExistingAndAddNewEntityBean(entityClass.get());
-        removeExistingAndAddNewRepoBean(repoClass.get());
+    @GetMapping("/book/list1")
+    public Object dynamicReposTestListByInterface() {
+        try {
+            Class<?> repoClass = Thread.currentThread().getContextClassLoader().loadClass("com.dzero.jpa.dynamic.repository.BookRepository");
+            BaseRepository baseRepository = (BaseRepository) applicationContext.getBean(repoClass);
+            Iterable<BaseEntity> result = baseRepository.findAll();
+            log.info("result: " + result);
+            return result;
+        } catch (ClassNotFoundException e) {
+            log.error("", e);
+            return null;
+        }
     }
 
     public void removeExistingAndAddNewEntityBean(Class<?> entityClass) {
@@ -237,7 +250,7 @@ public class TestController {
     }
 
     @GetMapping("/scheme")
-    void getScheme() {
+    public void getScheme() {
         final SchemaCrawlerOptions options = SchemaCrawlerOptionsBuilder.newSchemaCrawlerOptions();
         final Catalog catalog;
         try {
@@ -258,7 +271,7 @@ public class TestController {
                 }
             }
         } catch (SQLException e) {
-           log.error("", e);
+            log.error("", e);
         }
     }
 }
